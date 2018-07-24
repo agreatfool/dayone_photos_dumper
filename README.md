@@ -12,7 +12,7 @@ npm install -g dayone_photos_dumper
 ## Usage
 
 ```
-$ dayone_photos_dumper -h
+$ dayone-photos-dumper -h
 
   Usage: index [options]
 
