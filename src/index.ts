@@ -25,10 +25,12 @@ program.version(pkg.version)
     .description('Dayone2 photo dumper, supports only MacOS & Dayone2')
     .option('-e, --entry <string>', `entry id, like: E002D19B76E74474B6FCC2C74E3E05B2 OR entry url, like: dayone2://view?entryId=E002D19B76E74474B6FCC2C74E3E05B2`)
     .option('-o, --output_dir <dir>', 'output dir')
+    .option('-s, --source_dir <dir>', `source dir, default is Dayone2 document path: ${DAYONE_DOCUMENTS}, could switch to your backup dir`)
     .parse(process.argv);
 
 const ARGS_ENTRY_INFO = (program as any).entry === undefined ? undefined : (program as any).entry;
 const ARGS_OUTPUT_DIR = (program as any).output_dir === undefined ? undefined : (program as any).output_dir;
+const ARGS_SOURCE_DIR = (program as any).source_dir === undefined ? DAYONE_DOCUMENTS : (program as any).source_dir;
 
 interface EntryRow {
     Z_PK: number;
@@ -79,6 +81,12 @@ class DayOnePhotosDumper {
             console.log('Valid output directory required, please check -o option');
             process.exit(1);
         }
+
+        // -s, source_dir
+        if (ARGS_SOURCE_DIR !== DAYONE_DOCUMENTS && !(await LibFs.exists(LibPath.join(DAYONE_DOCUMENTS, 'DayOne.sqlite')))) {
+            console.log('Valid source directory required, please check -s option');
+            process.exit(1);
+        }
     }
 
     private async _process() {
@@ -98,7 +106,7 @@ class DayOnePhotosDumper {
         console.log(`Dump path ensured: ${dumpPath}`);
 
         // define sqlite db file path
-        let dbPath = LibPath.join(DAYONE_DOCUMENTS, 'DayOne.sqlite');
+        let dbPath = LibPath.join(ARGS_SOURCE_DIR, 'DayOne.sqlite');
         console.log(`DB file path: ${dbPath}`);
 
         // connect db

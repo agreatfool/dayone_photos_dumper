@@ -23,6 +23,7 @@ $ dayone-photos-dumper -h
     -V, --version           output the version number
     -e, --entry <string>    entry id, like: E002D19B76E74474B6FCC2C74E3E05B2 OR entry url, like: dayone2://view?entryId=E002D19B76E74474B6FCC2C74E3E05B2
     -o, --output_dir <dir>  output dir
+    -s, --source_dir <dir>  source dir, default is Dayone2 document path: /Users/Jonathan/Library/Group Containers/5U8NS4GX82.dayoneapp2/Data/Documents, could switch to your backup dir
     -h, --help              output usage information
 ```
 
