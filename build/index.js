@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
@@ -29,10 +30,12 @@ program.version(pkg.version)
     .option('-e, --entry <string>', `entry id, like: E002D19B76E74474B6FCC2C74E3E05B2 OR entry url, like: dayone2://view?entryId=E002D19B76E74474B6FCC2C74E3E05B2`)
     .option('-o, --output_dir <dir>', 'output dir')
     .option('-s, --source_dir <dir>', `source dir, default is Dayone2 document path: ${DAYONE_DOCUMENTS}, could switch to your backup dir`)
+    .option('-d, --database_path <dir>', 'database file path, dayone2 default path would be used if undefined')
     .parse(process.argv);
 const ARGS_ENTRY_INFO = program.entry === undefined ? undefined : program.entry;
 const ARGS_OUTPUT_DIR = program.output_dir === undefined ? undefined : program.output_dir;
 const ARGS_SOURCE_DIR = program.source_dir === undefined ? DAYONE_DOCUMENTS : program.source_dir;
+const ARGS_DB_DIR = program.database_path === undefined ? undefined : program.database_path;
 class DayOnePhotosDumper {
     run() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -74,6 +77,10 @@ class DayOnePhotosDumper {
                 console.log('Valid source directory required, please check -s option');
                 process.exit(1);
             }
+            if (ARGS_DB_DIR !== undefined && !(yield LibFs.exists(ARGS_DB_DIR))) {
+                console.log('Valid database directory required, please check -d option');
+                process.exit(1);
+            }
         });
     }
     _process() {
@@ -91,7 +98,7 @@ class DayOnePhotosDumper {
             }
             console.log(`Dump path ensured: ${dumpPath}`);
             // define sqlite db file path
-            let dbPath = LibPath.join(ARGS_SOURCE_DIR, 'DayOne.sqlite');
+            let dbPath = (ARGS_DB_DIR === undefined) ? LibPath.join(ARGS_SOURCE_DIR, 'DayOne.sqlite') : ARGS_DB_DIR;
             console.log(`DB file path: ${dbPath}`);
             // connect db
             let db = new sqlite3.Database(dbPath, (err) => __awaiter(this, void 0, void 0, function* () {
@@ -137,7 +144,7 @@ class DayOnePhotosDumper {
     _selectPhotos(db, entryId) {
         return __awaiter(this, void 0, void 0, function* () {
             return new Promise((resolve, reject) => {
-                db.all(`SELECT Z_PK, ZMD5, ZTYPE FROM ZPHOTO WHERE ZENTRY=${entryId};`, [], (err, rows) => {
+                db.all(`SELECT Z_PK, ZMD5, ZTYPE FROM ZATTACHMENT WHERE ZENTRY=${entryId};`, [], (err, rows) => {
                     if (err) {
                         return reject(err);
                     }
